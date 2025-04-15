@@ -1,22 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>儿童行为量表-独立选择版</title>
+    <title>儿童行为量表-带二维码分享</title>
+    
+    <!-- 引入Bootstrap样式 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- 引入二维码生成库 -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    
     <style>
-        .section-title { 
-            background-color: #e9ecef; 
-            padding: 8px; 
-            margin-top: 20px;
-            font-weight: bold;
-        }
-        .question {
-            margin-bottom: 15px;
-            padding: 15px;
-            border: 1px solid #dee2e6;
+        /* 基础样式 */
+        .section-title {
+            background-color: #f8f9fa;
+            padding: 12px;
+            margin: 20px 0 10px;
             border-radius: 5px;
         }
-        .highlight { color: #dc3545; font-weight: bold; }
+        
+        /* 二维码容器样式 */
+        #qrcode-container {
+            margin: 30px auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 300px;
+            text-align: center;
+        }
+        
+        /* 动态提示文字 */
+        .qrcode-tip {
+            color: #666;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -608,14 +625,80 @@
                 </div>
             </div>
 
-            <div class="d-grid gap-2 mt-4">
-                <button class="btn btn-lg btn-primary" onclick="generateReport()">生成评估报告</button>
-            </div>
-            <div id="report" class="mt-4"></div>
+        <!-- 功能按钮区 -->
+        <div class="text-center mt-5">
+            <!-- 生成报告按钮 -->
+            <button class="btn btn-primary btn-lg" onclick="generateReport()">
+                📊 生成评估报告
+            </button>
+            
+            <!-- 生成二维码按钮 -->
+            <button onclick="createQRCode()">生成分享二维码</button>
+            📱 生成分享二维码
+            </button>
         </div>
-    
-        <script>
-            function generateReport() {
+
+        <!-- 二维码显示容器 -->
+        <div id="qrcode-container.classList.remove('d-none');
+            <div id="qrcode"></div>
+            <p class="qrcode-tip mt-2">扫码即可打开量表</p >
+            <button class="btn btn-outline-secondary btn-sm mt-2" onclick="downloadQRCode()">
+                ⬇️ 下载二维码
+            </button>
+        </div>
+
+        <!-- 报告显示区域 -->
+        <div id="report" class="mt-4"></div>
+    </div>
+
+    <script>
+        // ==================== 二维码核心功能 ====================
+        let qrCodeInstance = null; // 保存二维码实例
+
+        // 创建二维码函数
+        function createQRCode() {
+            const container = document.getElementById('qrcode-container');
+            
+            // 如果已有二维码，先清除旧实例
+            if(qrCodeInstance) {
+                qrCodeInstance.clear();
+                document.getElementById('qrcode').innerHTML = '';
+                console.log('二维码实例：', qrCodeInstance);
+            }
+
+            // 显示容器
+            container.classList.remove('d-none');
+
+            // 获取当前页面地址
+            const pageURL = window.location.href;
+
+            // 创建新二维码实例
+            qrCodeInstance = new QRCode(document.getElementById('qrcode'), {
+                text: pageURL,
+                width: 200,      // 二维码宽度
+                height: 200,     // 二维码高度
+                colorDark: "#2c3e50", // 深色点颜色
+                colorLight: "#ffffff", // 背景色
+                correctLevel: QRCode.CorrectLevel.H // 容错级别（最高）
+            });
+        }
+
+        // 下载二维码功能
+        function downloadQRCode() {
+            const canvas = document.querySelector('#qrcode canvas');
+            if (!canvas) {
+                alert('请先生成二维码');
+                return;
+            }
+
+            // 创建临时链接
+            const link = document.createElement('a');
+            link.download = '量表二维码.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }    
+
+        function generateReport() {
                 // 收集所有答案
                 const data = {};
                 document.querySelectorAll('input[type="radio"]:checked').forEach(input => {
